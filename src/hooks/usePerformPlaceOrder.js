@@ -1,16 +1,20 @@
 import { useCallback } from 'react';
 import _get from 'lodash.get';
 import _set from 'lodash.set';
-import { LOGIN_FORM, config } from '../../../../config';
+
+import { __ } from '../../../../i18n';
+import { performRedirect } from '../utility/index';
+import { LOGIN_FORM } from '../../../../config';
+import { _isObjEmpty, _keys } from '../../../../utils';
 
 import usePayOneAppContext from './usePayOneAppContext';
 import usePayOneCartContext from './usePayOneCartContext';
-import { performRedirect, _isObjEmpty } from '../utility';
 
 export default function usePerformPlaceOrder(paymentMethodCode) {
   const { cartId, setRestPaymentMethod, setOrderInfo } = usePayOneCartContext();
-  const { isLoggedIn, setPageLoader, setErrorMessage } = usePayOneAppContext();
-  console.log('perfom place order new');
+  const { isLoggedIn, setPageLoader, setErrorMessage, checkoutAgreements } =
+    usePayOneAppContext();
+
   return useCallback(
     async (values, additionalData, extensionAttributes = {}) => {
       try {
@@ -22,9 +26,13 @@ export default function usePerformPlaceOrder(paymentMethodCode) {
           },
         };
 
-        if (!_isObjEmpty(extensionAttributes)) {
+        if (
+          !_isObjEmpty(extensionAttributes) ||
+          !_isObjEmpty(checkoutAgreements)
+        ) {
           _set(paymentMethodData, 'paymentMethod.extension_attributes', {
             ...extensionAttributes,
+            agreement_ids: _keys(checkoutAgreements),
           });
         }
 
@@ -35,22 +43,9 @@ export default function usePerformPlaceOrder(paymentMethodCode) {
         }
 
         setPageLoader(true);
-        const response = await fetch(`${config.baseUrl}/zippayment/standard`);
-        if (!response.ok) {
-          throw new Error('Network response was not ok.');
-        }
-        const data = await response.json();
-        if (data && data.error) {
-          console.log(data);
-          setErrorMessage(data.message);
-          return;
-        }
-
         const order = await setRestPaymentMethod(paymentMethodData, isLoggedIn);
-        console.log(order);
-        console.log('order');
         setPageLoader(false);
-        performRedirect(order, data.redirect_uri);
+        performRedirect(order);
 
         if (order) {
           setOrderInfo(order);
@@ -58,19 +53,22 @@ export default function usePerformPlaceOrder(paymentMethodCode) {
       } catch (error) {
         console.error(error);
         setErrorMessage(
-          'This transaction could not be performed. Please select another payment method.'
+          __(
+            'This transaction could not be performed. Please select another payment method.'
+          )
         );
         setPageLoader(false);
       }
     },
     [
+      cartId,
       isLoggedIn,
       setOrderInfo,
       setPageLoader,
       setErrorMessage,
       paymentMethodCode,
+      checkoutAgreements,
       setRestPaymentMethod,
-      cartId,
     ]
   );
 }

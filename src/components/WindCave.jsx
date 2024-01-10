@@ -1,51 +1,47 @@
-import React, { useCallback, useEffect } from 'react';
-import { shape, func } from 'prop-types';
-import { paymentMethodShape } from '../../../../utils/payment';
+import React from 'react';
+import { func, shape } from 'prop-types';
+
+import Card from '../../../../components/common/Card';
 import RadioInput from '../../../../components/common/Form/RadioInput';
-import usePerformPlaceOrder from '../hooks/usePerformPlaceOrder';
-import usePayOneCheckoutFormContext from '../hooks/usePayOneCheckoutFormContext';
+
+import { paymentMethodShape } from '../utility/index';
 
 function WindCave({ method, selected, actions }) {
-  const { registerPaymentAction } = usePayOneCheckoutFormContext();
   const isSelected = method.code === selected.code;
-  const performPlaceOrder = usePerformPlaceOrder(method.code);
-  const placeOrderWithPayPal = useCallback(
-    (values) => performPlaceOrder(values),
-    [performPlaceOrder]
+
+  /**
+   * This will be fired when user placing the order and this payment method
+   * is selected by the user.
+   */
+
+  const radioInputElement = (
+    <RadioInput
+      value={method.code}
+      label="wind"
+      name="paymentMethod"
+      checked={isSelected}
+      onChange={actions.change}
+    />
   );
 
-  useEffect(() => {
-    registerPaymentAction(method.code, placeOrderWithPayPal);
-  }, [method, registerPaymentAction, placeOrderWithPayPal]);
-
-  if (!isSelected) {
-    return (
-      <RadioInput
-        value={method.code}
-        label={method.title}
-        name="paymentMethod"
-        checked={isSelected}
-        onChange={actions.change}
-      />
-    );
-  }
   return (
-    <div>
-      <div>
-        <RadioInput
-          value={method.code}
-          label={method.title}
-          name="paymentMethod"
-          checked={isSelected}
-          onChange={actions.change}
-        />
+    <>
+      <div>{radioInputElement}</div>
+      <div className="mx-4 my-4">
+        <Card bg="darker">
+          <div className="container flex flex-col justify-center w-4/5">
+            test
+          </div>
+        </Card>
       </div>
-    </div>
+    </>
   );
 }
+
 WindCave.propTypes = {
   method: paymentMethodShape.isRequired,
   selected: paymentMethodShape.isRequired,
   actions: shape({ change: func }).isRequired,
 };
+
 export default WindCave;
