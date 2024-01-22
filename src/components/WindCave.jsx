@@ -1,14 +1,13 @@
 import React from 'react';
 import { func, shape } from 'prop-types';
 
-import Card from '../../../../components/common/Card';
 import RadioInput from '../../../../components/common/Form/RadioInput';
+//  import creditCardConfig from './creditCardConfig';
 
 import { paymentMethodShape } from '../utility/index';
 
 function WindCave({ method, selected, actions }) {
   const isSelected = method.code === selected.code;
-
   /**
    * This will be fired when user placing the order and this payment method
    * is selected by the user.
@@ -17,24 +16,44 @@ function WindCave({ method, selected, actions }) {
   const radioInputElement = (
     <RadioInput
       value={method.code}
-      label="wind"
+      label={method.title}
       name="paymentMethod"
       checked={isSelected}
       onChange={actions.change}
     />
   );
 
-  return (
-    <>
-      <div>{radioInputElement}</div>
-      <div className="mx-4 my-4">
-        <Card bg="darker">
+  if (isSelected) {
+    return (
+      <>
+        {radioInputElement}
+        {/* <Card bg="darker">
           <div className="container flex flex-col justify-center w-4/5">
-            test
+            <iframe
+              title="Payment Page"
+              src="https://www.example.com/"
+              width="100%"
+              height="600px"
+              frameBorder="0"
+            />
           </div>
-        </Card>
+        </Card> */}
+      </>
+    );
+  }
+
+  return (
+    <div>
+      <div>
+        <RadioInput
+          value={method.code}
+          label={method.title}
+          name="paymentMethod"
+          checked={isSelected}
+          onChange={actions.change}
+        />
       </div>
-    </>
+    </div>
   );
 }
 
